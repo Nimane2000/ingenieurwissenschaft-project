@@ -1,0 +1,38 @@
+Die Integration des Raspberry Pi in das IoT-System erfolgte in mehreren Schritten. Zunächst wurde das Raspberry Pi OS von der offiziellen Website heruntergeladen und auf dem Gerät installiert. Die Installation erfolgte durch Auswahl des Raspberry Pi 4 Modells und des Debian Bookworm 64-bit Betriebssystems. Während der Installation wurden der Benutzername 'imane' und das Passwort 'imane' festgelegt.
+
+Nach der Installation wurde der Raspberry Pi mit einem USB-Gerät verbunden und an die Stromversorgung angeschlossen. Zusätzlich wurde eine Ethernet-Verbindung hergestellt.
+
+Um eine Remote-Verbindung zum Raspberry Pi herzustellen, wurden Putty und VNC Viewer installiert. Putty wurde verwendet, um eine SSH-Verbindung herzustellen, während VNC Viewer für den Remote-Desktop-Zugriff verwendet wurde. Die Verbindung wurde erfolgreich hergestellt, indem die URL 'raspberrypi.local' verwendet und die zuvor festgelegten Anmeldeinformationen eingegeben wurden.
+
+Nach der erfolgreichen Verbindung trat das Problem des automatischen Verbindungsabbruchs nach ein paar Sekunden auf. Dieses Problem wurde behoben, indem die Konfigurationsdatei von VNC Server bearbeitet wurde. Die Änderung der Konfigurationsdatei erfolgte durch Hinzufügen der Zeile `IdleTimeout=0` in die Datei `/root/.vnc/config.d/vncserver-x1`. Dies bedeutete, dass die automatische Trennung bei Inaktivität deaktiviert wurde.
+
+Danach wurde der Arduino an den Raspberry Pi angeschlossen und die serielle Kommunikation zwischen den beiden Geräten hergestellt. Die Daten des Arduino wurden mithilfe der seriellen Bibliothek gelesen und in einer CSV-Datei gespeichert. Der Python-Code für die serielle Kommunikation sah wie folgt aus:
+
+```python
+import serial
+import csv
+from datetime import datetime
+
+ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+with open('sensor_data.csv', 'a', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(["Timestamp", "Sensor1", "Sensor2"])  # Header
+
+    while True:
+        if ser.in_waiting > 0:
+            line = ser.readline().decode('utf-8').rstrip()
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  
+            sensor_values = line.split(',')  
+            writer.writerow([timestamp] + sensor_values)
+```
+
+Für die MQTT-Integration wurden die Bibliotheken `pyserial` und `paho-mqtt` auf dem Raspberry Pi installiert. Zusätzlich wurde ein MQTT-Broker (Mosquitto) installiert und konfiguriert. Die Installation erfolgte durch die folgenden Befehle:
+
+```
+sudo apt install python3-paho-mqtt
+sudo apt install -y mosquitto mosquitto-clients
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+```
+
+Diese Schritte ermöglichten die erfolgreiche Integration des Raspberry Pi in das IoT-System und die Kommunikation mit dem Arduino über MQTT.

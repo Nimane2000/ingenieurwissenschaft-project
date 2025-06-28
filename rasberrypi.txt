@@ -1,0 +1,105 @@
+
+1 - download Raspberry Pi OS
+https://www.raspberrypi.com/software/
+
+select raspb pi 4 -> select Operations system of Debian bookworm 64bit--> set username: imane, passwrod: imane -> usb -> start
+
+connect usb to Raspberry and then connect Raspberry to power port -> connect Raspberry to eithernet
+
+install putty (https://www.putty.org/)-> open PUTTY --> url --> raspberrypi.local --> username, passowrd -> connection succesffully
+
+. VNC-Server auf dem Raspberry Pi aktivieren
+    Öffne ein Terminal am Pi oder verbinde dich per SSH (nach dem wir mit putty verbunden haben, könnte ich den VNC aktivieren):
+Starte das Konfigurationstool:
+
+    sudo raspi-config
+
+Gehe zu Schnittstellenoptionen/ Interface Optionen > VNC > Aktivieren.
+
+--> install vnc viewer (https://www.realvnc.com/en/connect/download/viewer/) --> url : raspberrypi.local --> username, passowrd --> connection sucess
+
+
+--> raspberry blocked/Stopped after 10-60 seconds (automatischer Verbindungsabbruch nach ein paar Sekunden!)
+searching about problem (https://help.realvnc.com/hc/en-us/community/posts/7715747115805-How-do-i-change-idle-timeout-on-VNCServer-on-Headless-Pi) --> 
+Öffne die Konfigurationsdatei:
+        sudo nano  /root/.vnc/config.d/vncserver-x1
+Füge ganz unten ein:
+        IdleTimeout=0
+Das bedeutet: Keine automatische Trennung bei Inaktivität.
+Speichern und schließen
+        Drücke Strg + O → dann Enter (zum Speichern).
+        Drücke Strg + X (zum Schließen).
+
+
+Check which ports we've, before connecting Arduino
+    ls /dev/tty*
+    then connect Arduino and check which port is arduino port
+    ls /dev/tty*
+Lesen was kommt raus von rasp: reading port data with serial library and save them in csv: reading_ports.py
+
+Der Code liest Sensordaten von einem Arduino über eine serielle Schnittstelle,
+fügt einen Zeitstempel hinzu und speichert die Daten in einer CSV-Datei.
+
+Danach cd Desktop   ->   python reading_ports.py
+
+
+# MQTT
+in raspberry:
+    Install pyserial for serial communication and paho-mqtt for MQTT:
+
+        sudo apt install python3-paho-mqtt
+
+    Install an MQTT Broker
+            sudo apt install -y mosquitto mosquitto-clients
+            sudo systemctl enable mosquitto
+            sudo systemctl start mosquitto
+
+
+in Laptop:
+    install docker: https://docs.docker.com/desktop/setup/install/windows-install/
+   https://github.com/tkaewplik/iot-compose/tree/main
+   
+Docker öffnen -> cd .\iot-compose-main\ -> password.txt erstellen für mosquitto -> admin : admin  // imane :imane
+ -> docker run --rm -v ${PWD}/configs:/mosquitto/config eclipse-mosquitto:2.0 mosquitto_passwd -U /mosquitto/config/password.txt  
+ -> docker-compose down  ->  docker-compose up -d
+ -> docker-compose up 
+ 
+ -> File im rasp erstellen  : mqtt-publisher.py   
+    -> IP lesen durch ipconfig   -> IPv4-Adresse  . . . . . . . . . . : 192.168.87.169    als mqtt-broker
+    -> mqtt port definieren -> 1883 (Docker-konfig genommen) 
+
+-> python -m venv venv   -> source venv/bin/activate  ->  pip3 install paho-mqtt  ->  pip3 install pyserial
+    -> python mqtt_publisher.py 
+
+->source venv/bin/activate
+
+Node-RED:
+    Menü → Palette verwalten → Installieren -> node-red-contrib-influxdb (für InfluxDB-Anbindung)
+    Nodes auswählen:
+     - mqtt in -> Server-Name: Mosquitto Broker (Server: 192.168.87.169 , Port: 1883) -> Topic: arduino/sensors 
+     - json -> Aktion: Konvertierung zu javaScript-Objekt  -> Eigenschaft: msg.payload
+     - Debug -> msg.payload
+     - InfluxDB out -> Server-Name: InfluxDB Sensor Data (URL: http://influxdb:8086 , Tocken: aus InfluxDB UI, unter „API Tokens“ generieren)
+        -> Organisation: myorg -> Bucket: mybucket -> Measurement: sensor_data 
+ Prüfe in InfluxDB (Data Explorer), ob die Daten als einzelne Felder (z.B. temperatur) gespeichert werden.
+
+InfluxDB:
+    Username: admin, Password: admin123
+    Data Explorer -> from mybucket -> measurement sensor_data -> ....
+
+Grafana:
+    Data Source -> Query language: Flux -> URL: http://influxdb:8086 -> User: admin -> Password: admin123
+        -> Organization: myorg -> Tocken: ... ->
+
+from(bucket: "mybucket")
+  |> range(start: 0)   //aller gespeicherten Daten
+  |> filter(fn: (r) => r._measurement == "sensor_data")
+
+Problem : Beide LEDs leuchten dauerhaft 
+Kein Bootvorgang von der SD-Karte
+        Bootloader reparieren (EEPROM wiederherstellen)
+        Raspberry Pi 4 EEPROM Recovery - herunterladen (ZIP-Datei)
+    https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#recovery
+    https://www.fastoe.com/blog/rpi-4_400-eeprom-recovery-guide
+    https://forums.raspberrypi.com/viewtopic.php?t=370271
+    https://www.gutefrage.net/frage/raspberry-pi-4b-rote-und-gruene-led-leuchten-dauerhaft

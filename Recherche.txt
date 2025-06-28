@@ -1,0 +1,78 @@
+Raspberry
+    https://www.youtube.com/watch?v=F5OYpPUJiOw
+    
+    https://www.youtube.com/watch?v=m6aS9YF-0xo
+
+MQTT
+   https://www.youtube.com/watch?v=qCdo2oFVe1I 
+   https://www.youtube.com/watch?v=ItcGWCvYa8o
+   https://www.opc-router.de/was-ist-mqtt/
+   https://mosquitto.org/documentation/
+    MQTT (Message Queuing Telemetry Transport) ist ein offenes, leichtgewichtiges
+    Netzwerkprotokoll, das speziell für die Kommunikation zwischen Maschinen (M2M) 
+    und im Bereich Internet der Dinge (IoT) entwickelt wurde.
+    MQTT folgt dem Publish-Subscribe-Prinzip:
+    Publisher (Datenquelle): Sendet Nachrichten zu bestimmten Themen („Topics“).
+    Subscriber (Datensenke): Empfängt Nachrichten zu abonnierten Topics.
+    Broker: Vermittelt als zentrale Instanz alle Nachrichten zwischen Publisher und 
+    Subscriber, filtert und verteilt sie entsprechend der Abonnements.
+    Die Kommunikation erfolgt nie direkt zwischen Publisher und Subscriber, 
+    sondern immer über den Broker.
+Node-red
+    https://www.youtube.com/watch?v=ksGeUD26Mw0
+    https://nodered.org/#get-started
+    https://entwickler.de/iot/ein-baukasten-fur-das-internet-der-dinge
+    Ziel ist es, jedem zu ermöglichen, Anwendungen zu erstellen, die Daten erfassen, 
+    transformieren und visualisieren – ideal für Automatisierung, IoT, Home Automation 
+    und industrielle Steuerungen.
+    Die Plattform bietet eine browserbasierte, visuelle Oberfläche, in der Nutzer 
+    sogenannte „Flows“ durch das Verbinden von Bausteinen (Nodes) erstellen können.
+Influx-DB
+    https://docs.influxdata.com/influxdb/v2/
+    https://www.ionos.de/digitalguide/hosting/hosting-technik/was-ist-influxdb/
+    InfluxDB ist ein Open-Source-Datenbankmanagementsystem, das speziell für die 
+    Speicherung und Analyse von Zeitreihendaten entwickelt wurde. 
+Grafana
+    https://grafana.com/docs/
+    Grafana ist ein leistungsfähiges, flexibles Tool zur Visualisierung und Überwachung
+     von Daten aus verschiedensten Quellen. Es überzeugt durch seine anpassbaren 
+     Dashboards, umfangreiche Alarmierungsfunktionen, breite Datenquellenunterstützung 
+     und eine aktive Community.  
+JSON
+    https://www.youtube.com/watch?v=Q-azuqA-Qs8
+    JSON (JavaScript Object Notation) ist ein plattformunabhängiges, leicht lesbares 
+    Datenformat, das häufig für den Datenaustausch zwischen Systemen verwendet wird.
+DOCKER
+    https://docs.docker.com/get-started/docker-overview/
+    Docker vereinfacht die Entwicklung, das Testen und den Betrieb von Anwendungen 
+    erheblich.Sie ermöglicht es, Anwendungen und deren Abhängigkeiten in sogenannten 
+    Containern zu verpacken, wodurch sie unabhängig von der zugrunde liegenden 
+    Infrastruktur laufen können.
+Installation
+    https://www.youtube.com/watch?v=heyH0hgENF8
+    https://www.youtube.com/watch?v=_DO2wHI6JWQ
+    Ablauf und zentrale Schritte:
+    1-Sensoren und MQTT
+        Sensoren z.B. Arduino erfassen Messwerte Temperatur, Luftfeuchte...
+        Die Sensordaten werden als JSON-Nachricht per MQTT-Protokoll an den Raspberry Pi gesendet.
+        Mosquitto fungiert als MQTT-Broker: Sensoren publizieren Daten an einen Topic, der Broker verteilt 
+        diese an alle abonnierten Clients.
+    2-Node-RED
+        Node-RED abonniert relevante MQTT-Topics, liest die JSON-Nachrichten aus und wandelt sie ggf. um.
+        Die Daten werden anschließend von Node-RED in die Datenbank (InfluxDB) geschrieben.
+    3-InfluxDB
+        InfluxDB speichert die Zeitreihendaten (z. B. Temperaturverlauf) dauerhaft.
+        Die Datenbank wird im Container eingerichtet und mit Node-RED verbunden.
+    4-Grafana
+        Grafana dient als Visualisierungstool.
+        Es wird mit InfluxDB verbunden, um die gespeicherten Sensordaten in Dashboards und Diagrammen anzuzeigen.
+    5-Installation & Einrichtung
+        Alle vier Dienste werden als Docker-Container über das IoTStack-Tool installiert und verwaltet.
+        Die Konfiguration erfolgt über eine Menüführung und die Container werden gemeinsam gestartet.
+        Die Verbindung zwischen den Diensten (MQTT → Node-RED → InfluxDB → Grafana) wird jeweils über die 
+        IP-Adresse des Raspberry Pi und die jeweiligen Ports hergestellt.
+    6-Test & Nutzung
+        Nach dem Start der Container werden Sensordaten vom Sensor-Node gesendet.
+        In Node-RED wird ein Flow erstellt: MQTT-In-Node → ggf. Umwandlung → InfluxDB-Out-Node.
+        In InfluxDB kann geprüft werden, ob die Daten ankommen.
+        In Grafana wird InfluxDB als Datenquelle hinzugefügt und ein Dashboard mit Diagrammen für die Sensordaten erstellt.
